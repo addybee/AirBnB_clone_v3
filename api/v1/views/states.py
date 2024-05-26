@@ -46,7 +46,7 @@ def get_states():
     return jsonify([state.to_dict() for state in states])
 
 
-@app_views.route("/states/<string:state_id>", methods=['GET'],
+@app_views.route("/states/<state_id>", methods=['GET'],
                  strict_slashes=False)
 def get_state_by_id(state_id):
     """
@@ -115,7 +115,7 @@ def create_state():
         abort(400, "Not a JSON")
     if "name" not in state_data:
         abort(400, "Missing name")
-    state = State(name=state_data['name'])
+    state = State(**state_data)
     storage.new(state)
     storage.save()
     return make_response(jsonify(state.to_dict()), 201)
@@ -143,8 +143,10 @@ def update_state(state_id):
     state_data = request.get_json(silent=True)
     if state_data is None:
         abort(400, "Not a JSON")
-    if "name" in state_data:
-        state.name = state_data['name']
+    ignore = ['id', 'created_at', 'updated_at']
+    for key, value in state_data.items():
+        if key not in ignore:
+            setattr(state, key, value)
     storage.new(state)
     storage.save()
-    return jsonify(state.to_dict())
+    return make_response(jsonify(state.to_dict()), 200)
