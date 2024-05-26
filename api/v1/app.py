@@ -14,7 +14,6 @@ Attributes:
 
 from api.v1.views import app_views
 from flask import Flask, make_response, jsonify
-from models import storage
 from os import getenv
 
 
@@ -25,6 +24,8 @@ app.register_blueprint(app_views)
 @app.teardown_appcontext
 def close_session(error):
     """ closes the storage session after request is completed """
+    from models import storage
+
     storage.close()
 
 
