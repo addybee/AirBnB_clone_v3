@@ -10,3 +10,4 @@ from api.v1.views.index import *
 
 app_views = Blueprint("app_views", __name__, url_prefix="/api/v1")
 app_views.add_url_rule("/status", view_func=get_status, methods=['GET'])
+app_views.add_url_rule("/stats", view_func=get_index, methods=['GET'])
