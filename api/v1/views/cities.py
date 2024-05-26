@@ -37,9 +37,29 @@ from models.city import City
 from api.v1.views import app_views
 
 
-@app_views.route("/states/<state_id>/cities", methods=['GET'], strict_slashes=False)
+@app_views.route("/states/<state_id>/cities", methods=['GET'],
+                 strict_slashes=False)
 def get_cities_by_state_id(state_id):
+    """
+    Retrieves a list of cities for a given state ID.
 
+    This endpoint retrieves all cities associated with a specific state,
+    identified by `state_id`. If the state does not exist, it responds with
+    a 404 error.
+
+    Args:
+        state_id (str): The unique identifier for the state.
+
+    Returns:
+        json: A list of cities in JSON format if the state exists. Each city
+              is represented as a dictionary.
+        aborts: 404 error if the state with the given `state_id` does not
+        exist.
+
+    Example:
+        GET /api/v1/states/1234/cities returns a JSON list of cities for state
+        1234.
+    """
     from models.state import State
     state = storage.get(State, state_id)
 
@@ -98,18 +118,44 @@ def delete_city(city_id):
     return jsonify({})
 
 
-@app_views.route("/states/<state_id>/cities", methods=['POST'], strict_slashes=False)
+@app_views.route("/states/<state_id>/cities", methods=['POST'],
+                 strict_slashes=False)
 def create_city(state_id):
+    """
+    Creates a new city in a state with the given state_id.
+
+    Args:
+        state_id (str): The ID of the state where the new city will be
+        created.
+
+    Returns:
+        Flask Response: JSON representation of the new city with a status
+        code of 201,
+        or an error response with status code 404 if the state is not found,
+        400 if the input JSON is missing or the 'name' field is not provided.
+
+    Raises:
+        HTTPException: 404 if no state with the given ID exists.
+        HTTPException: 400 if the input is not a valid JSON or 'name' is
+        missing.
+
+    Example:
+        POST /api/v1/states/1234/cities with body {"name": "New City"}
+        returns 201 with the new city's data or an error status.
+    """
     from models.state import State
-    
+
+    # Check if the state exists
     if not storage.get(State, state_id):
         abort(404)
+    # Get city data from request
     city_data = request.get_json(silent=True)
     if city_data is None:
         abort(400, "Not a JSON")
     if "name" not in city_data:
         abort(400, "Missing name")
-        
+
+    # Create and save new city
     city = City(**city_data)
     city.state_id = state_id
     storage.new(city)
