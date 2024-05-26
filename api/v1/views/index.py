@@ -7,13 +7,16 @@ response.
 
 from flask import jsonify
 from models import storage
+from api.v1.views import app_views
 
 
+@app_views.route("/status", methods=['GET'], strict_slashes=False)
 def get_status():
     """Return a JSON response indicating the application status."""
     return jsonify({"status": "OK"})
 
 
+@app_views.route("/stats", methods=['GET'], strict_slashes=False)
 def get_index():
     """
     Return a JSON response with counts of various objects in storage.
