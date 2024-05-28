@@ -24,7 +24,8 @@ Functions:
         201 status code.
 
     update_review(review_id: str) -> flask.Response:
-        Updates attributes of a Review instance based on the provided review_id.
+        Updates attributes of a Review instance based on the provided 
+        review_id.
         Aborts with a 404 error if no Review is found, or a 400 error if the
         request does not contain valid JSON data. Returns the updated Review as
         a JSON object.
