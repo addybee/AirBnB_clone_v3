@@ -155,8 +155,8 @@ def create_review(place_id):
     if review_data is None:
         abort(400, "Not a JSON")
     if "user_id" not in review_data:
-        abort(400, "uMissing user_id")
-    if not storage.get(User, review_data["state_id"]):
+        abort(400, "Missing user_id")
+    if not storage.get(User, review_data["user_id"]):
         abort(404)
     if "text" not in review_data:
         abort(400, "Missing text")
