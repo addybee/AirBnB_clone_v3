@@ -47,6 +47,9 @@ class BaseModel:
             self.created_at = datetime.now()
             self.updated_at = self.created_at
 
+    def __eq__(self, other):
+        return self.id == other.id
+
     def __str__(self):
         """String representation of the BaseModel class"""
         return "[{:s}] ({:s}) {}".format(self.__class__.__name__, self.id,

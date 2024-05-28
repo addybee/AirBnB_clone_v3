@@ -197,3 +197,78 @@ def update_place(place_id):
     storage.new(place)
     storage.save()
     return make_response(jsonify(place.to_dict()), 200)
+
+
+@app_views.route("/places_search", methods=['POST'], strict_slashes=False)
+def search_place():
+    """
+    Search for places based on states, cities, or amenities filters.
+
+    This endpoint accepts a JSON object with optional 'states', 'cities',
+    and 'amenities' keys. It returns a list of places that match the filters.
+    If no filters are provided, all places are returned.
+
+    The search is inclusive for states and cities but exclusive for amenities,
+    meaning all specified amenities must be present in the place.
+
+    Returns:
+        A JSON list of places matching the search criteria.
+
+    Raises:
+        HTTPException: 400 if the request is not a valid JSON.
+    """
+    data = request.get_json(silent=True)
+    if data is None:
+        abort(400, "Not a JSON")
+    filter = []
+    if not len(data) or (
+                         not len(data.get('states', 0))
+                         and not len(data.get('cities', 0))
+                         and not len(data.get('amenities', 0))):
+        filter = storage.all(Place).values()
+    if len(data.get('states', 0)):
+        for id in data['states']:
+            filter.extend(get_places(id, "State"))
+    if len(data.get('cities', 0)):
+        for id in data["cities"]:
+            filter.extend(get_places(id, "City"))
+    filter = list(set(filter))
+
+    if len(data.get('amenities', 0)):
+        filter = [place for place in filter
+                  if set(data['amenities'])
+                  .issubset({amenity.id for amenity in place.amenities})
+                  ]
+    return jsonify(filter)
+
+
+def get_places(id: str, cls: str):
+    """
+    Retrieve places associated with a given state or city.
+
+    This function fetches an object based on its class and ID, then returns
+    a list of places related to the object if it exists. If the object does
+    not exist, it aborts the request with a 404 error.
+
+    Args:
+        id (str): The ID of the object to retrieve.
+        cls (str): The class type of the object ('State' or 'City').
+
+    Returns:
+        list: A list of places associated with the state or city.
+
+    Raises:
+        HTTPException: 404 if the object is not found.
+
+    Example:
+        - get_places("123", "State") returns all places in all cities of
+          state with ID "123".
+        - get_places("456", "City") returns all places in city with ID "456".
+    """
+    obj = storage.get(cls, id)
+    if obj is None:
+        abort(404)
+    if cls == "State":
+        return [place for city in obj.cities for place in city.places]
+    elif cls == "City":
+        return [place for place in obj.places]
