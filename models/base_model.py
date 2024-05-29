@@ -61,15 +61,6 @@ class BaseModel:
             return self.id == other.id
         return False
 
-    def __hash__(self):
-        """
-        Generate a hash value for an instance based on its 'id'.
-
-        Returns:
-            int: The hash value of the instance's 'id'.
-        """
-        return hash(self.id)
-
     def __str__(self):
         """String representation of the BaseModel class"""
         return "[{:s}] ({:s}) {}".format(self.__class__.__name__, self.id,
@@ -93,6 +84,9 @@ class BaseModel:
             del new_dict["_sa_instance_state"]
         if "password" in new_dict and models.storage_t == "db":
             del new_dict["password"]
+        if "amenities" in new_dict:
+            new_dict["amenities"] = [amenity.to_dict()
+                                     for amenity in self.amenities]
         return new_dict
 
     def delete(self):

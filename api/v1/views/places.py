@@ -220,23 +220,29 @@ def search_place():
     data = request.get_json(silent=True)
     if data is None:
         abort(400, "Not a JSON")
-    filter = []
-    if not data:
-        filter = storage.all(Place).values()
-    if 'states' in data:
-        for id in data['states']:
-            filter.extend(get_places(id, "State"))
-    if 'cities' in data:
-        for id in data["cities"]:
-            filter.extend(get_places(id, "City"))
-    filter = list(set(filter))
 
-    if 'amenities' in data and len(data['amenities']) > 0:
-        filter = [place for place in filter
-                  if set(data['amenities'])
-                  .issubset({amenity.id for amenity in place.amenities})
-                  ]
-    return jsonify([place.to_dict() for place in filter])
+    places = []
+
+    if not data:
+        places = storage.all(Place).values()
+    else:
+        if 'states' in data:
+            for state_id in data['states']:
+                places.extend(get_places(state_id, "State"))
+
+        if 'cities' in data:
+            for city_id in data['cities']:
+                places.extend(get_places(city_id, "City"))
+
+    # Deduplicate places using their unique IDs
+    places = {place.id: place for place in places}.values()
+
+    if 'amenities' in data and data['amenities']:
+        places = [place for place in places if
+                  set(data['amenities']).issubset(
+                      {amenity.id for amenity in place.amenities})]
+
+    return jsonify([place.to_dict() for place in places])
 
 
 def get_places(id: str, cls: str):
