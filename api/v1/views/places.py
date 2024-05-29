@@ -233,9 +233,11 @@ def search_place():
         if 'cities' in data:
             for city_id in data['cities']:
                 places.extend(get_places(city_id, "City"))
+        # Deduplicate places using their unique IDs
+        places = {place.id: place for place in places}.values()
 
-    # Deduplicate places using their unique IDs
-    places = {place.id: place for place in places}.values()
+    if not places:
+        places = storage.all(Place).values()
 
     if 'amenities' in data and data['amenities']:
         places = [place for place in places if
