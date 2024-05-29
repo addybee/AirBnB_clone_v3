@@ -221,25 +221,22 @@ def search_place():
     if data is None:
         abort(400, "Not a JSON")
     filter = []
-    if not len(data) or (
-                         not len(data.get('states', 0))
-                         and not len(data.get('cities', 0))
-                         and not len(data.get('amenities', 0))):
+    if not data:
         filter = storage.all(Place).values()
-    if len(data.get('states', 0)):
+    if 'states' in data:
         for id in data['states']:
             filter.extend(get_places(id, "State"))
-    if len(data.get('cities', 0)):
+    if 'cities' in data:
         for id in data["cities"]:
             filter.extend(get_places(id, "City"))
     filter = list(set(filter))
 
-    if len(data.get('amenities', 0)):
+    if 'amenities' in data and len(data['amenities']) > 0:
         filter = [place for place in filter
                   if set(data['amenities'])
                   .issubset({amenity.id for amenity in place.amenities})
                   ]
-    return jsonify(filter)
+    return jsonify([place.to_dict() for place in filter])
 
 
 def get_places(id: str, cls: str):

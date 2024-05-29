@@ -48,7 +48,27 @@ class BaseModel:
             self.updated_at = self.created_at
 
     def __eq__(self, other):
-        return self.id == other.id
+        """
+        Check equality based on the 'id' attribute of the instances.
+
+        Args:
+            other (BaseModel): The other instance to compare with.
+
+        Returns:
+            bool: True if both instances have the same 'id', otherwise False.
+        """
+        if isinstance(other, self.__class__.__name__):
+            return self.id == other.id
+        return False
+
+    def __hash__(self):
+        """
+        Generate a hash value for an instance based on its 'id'.
+
+        Returns:
+            int: The hash value of the instance's 'id'.
+        """
+        return hash(self.id)
 
     def __str__(self):
         """String representation of the BaseModel class"""
